@@ -426,7 +426,6 @@ async def metrics():
 
 @app.post("/crawl")
 @limiter.limit(config["rate_limiting"]["default_limit"])
-@mcp_tool("crawl")
 async def crawl(
     request: Request,
     crawl_request: CrawlRequest,
@@ -437,6 +436,7 @@ async def crawl(
     """
     if not crawl_request.urls:
         raise HTTPException(400, "At least one URL required")
+    
     res = await handle_crawl_request(
         urls=crawl_request.urls,
         browser_config=crawl_request.browser_config,
@@ -444,9 +444,8 @@ async def crawl(
         config=config,
     )
 
-
-from fastapi.encoders import jsonable_encoder
-return JSONResponse(content=jsonable_encoder(res))
+    from fastapi.encoders import jsonable_encoder
+    return JSONResponse(content=jsonable_encoder(res))
 
 
 @app.post("/crawl/stream")
@@ -458,12 +457,14 @@ async def crawl_stream(
 ):
     if not crawl_request.urls:
         raise HTTPException(400, "At least one URL required")
+    
     crawler, gen = await handle_stream_crawl_request(
         urls=crawl_request.urls,
         browser_config=crawl_request.browser_config,
         crawler_config=crawl_request.crawler_config,
         config=config,
     )
+
     return StreamingResponse(
         stream_results(crawler, gen),
         media_type="application/x-ndjson",

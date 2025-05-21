@@ -443,7 +443,10 @@ async def crawl(
         crawler_config=crawl_request.crawler_config,
         config=config,
     )
-    return JSONResponse(res)
+
+
+from fastapi.encoders import jsonable_encoder
+return JSONResponse(content=jsonable_encoder(res))
 
 
 @app.post("/crawl/stream")
